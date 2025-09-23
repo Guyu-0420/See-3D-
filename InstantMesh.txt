@@ -1,0 +1,13 @@
+源码链接：https://github.com/TencentARC/InstantMesh?tab=readme-ov-file
+使用：python app.py
+报错：缺少nvdiffrast
+下载：https://github.com/NVlabs/nvdiffrast（服务器没有梯子，下载成zip，导入服务器）
+---内存满了---
+# 查看 `/raid` 中占用空间最多的文件或文件夹
+sudo du -sh /raid/* | sort -rh | head -n 20
+查看wlm/yjy文件夹的内容
+sudo du -sh /raid/wlm/* | sort -rh
+------
+继续下载nvdiffrast
+pip install -i requirement 非常非常慢
+但是镜像搜不到全部的包
