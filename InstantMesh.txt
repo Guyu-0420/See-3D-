@@ -10,4 +10,21 @@ sudo du -sh /raid/wlm/* | sort -rh
 ------
 继续下载nvdiffrast
 pip install -i requirement 非常非常慢
-但是镜像搜不到全部的包
+---镜像搜不到全部的包
+运行：python app.py
+报错：没有onnxruntime
+
+python run.py configs/instant-mesh-large.yaml /raid/wlm/Project/Hunyuan3D-2.1-main/Front_photo/9.png --save_video
+ImportError: cannot import name 'split_torch_state_dict_into_shards' from 'huggingface_hub' (/home/dgxuser1/miniconda3/envs/instantmesh/lib/python3.10/site-packages/huggingface_hub/__init__.py)
+---pip install -U huggingface_hub
+---ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+tokenizers 0.14.1 requires huggingface_hub<0.18,>=0.16.4, but you have huggingface-hub 0.35.1 which is incompatible.
+Successfully installed huggingface_hub-0.35.1
+---pip install -U tokenizers
+所有包都更新好了，还是报错：ImportError: cannot import name 'cached_download' from 'huggingface_hub'
+---transformers 4.56.2 requires huggingface-hub<1.0,>=0.34.0, but you have huggingface-hub 0.25.2 which is incompatible.
+---环境问题解决了 但实际加载的时候会遇到连接不上huggingface 无法下载权重的问题
+# 将 HF 的 API 指到镜像
+---export HF_ENDPOINT=https://hf-mirror.com---就可以下载了
+---报错：requests.exceptions.ChunkedEncodingError: ('Connection broken: IncompleteRead(61398482 bytes read, 546021590 more expected)', IncompleteRead(61398482 bytes read, 546021590 more expected))
+---主要问题：time out+超占内存
