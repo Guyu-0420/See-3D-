@@ -1,0 +1,56 @@
+tripo-SR部署指南
+pip install -r requirements.txt
+torchmcube需要额外安装，安装步骤：
+/torchmcubes-master/build$ cmake ..
+报错：Could not find a package configuration file provided by "Torch" with any of
+  the following names:
+    TorchConfig.cmake
+    torch-config.cmake
+CMake 报告找不到 TorchConfig.cmake 或 torch-config.cmake，这表明系统未能正确找到 PyTorch 的 CMake 配置文件
+解决方法：重下---pip install torch
+python -c "import torch; print(torch.__file__)"
+/home/dgxuser1/miniconda3/envs/triposr/lib/python3.10/site-packages/torch/__init__.py
+cmake .. -DTorch_DIR=/home/dgxuser1/miniconda3/envs/triposr/lib/python3.10/site-packages/torch/share/cmake/Torch
+继续报错：pip install pybind11
+CMake Error at cxx/CMakeLists.txt:32 (pybind11_extension):
+  Unknown CMake command "pybind11_extension".
+清理cmake缓存
+rm -rf CMakeCache.txt CMakeFiles/
+没用
+cmake .. -Dpybind11_DIR=/home/dgxuser1/miniconda3/envs/triposr/lib/python3.10/site-packages/pybind11/share/cmake/pybind11
+可以了，然后 make---[100%] Built target torchmcubes_module
+python run.py /raid/yjy/TripoSR-main/1.jpg --output-dir /raid/yjy/TripoSR-main/output/
+
+(triposr) lqy@DGXUSER1:/raid/yjy/TripoSR-main$ echo "export PYTHONPATH=/raid/yjy/torchmcubes-master/build/cxx:\$PYTHONPATH" >> ~/.bashrc
+bash: /raid/lqy/.bashrc: Permission denied
+(triposr) lqy@DGXUSER1:/raid/yjy/TripoSR-main$ source ~/.bashrc
+
+/raid/yjy/TripoSR-main$ source ~/.bashrc
+lqy@DGXUSER1:/raid/yjy/TripoSR-main$ export PYTHONPATH=/raid/yjy/torchmcubes-master/build/cxx:$PYTHONPATH
+s.path)"
+lqy@DGXUSER1:/raid/yjy/TripoSR-main$ python -c "import sys; print(sys.path)"
+['', '/raid/yjy/torchmcubes-master/build/cxx', '/raid/yjy/TripoSR-main', '/home/dgxuser1/miniconda3/envs/triposr/lib/python310.zip', '/home/dgxuser1/miniconda3/envs/triposr/lib/python3.10', '/home/dgxuser1/miniconda3/envs/triposr/lib/python3.10/lib-dynload', '/home/dgxuser1/miniconda3/envs/triposr/lib/python3.10/site-packages']
+lqy@DGXUSER1:/raid/yjy/TripoSR-main$ 
+
+(triposr) lqy@DGXUSER1:/raid/yjy/TripoSR-main$ find /raid/yjy/torchmcubes-master/build -name "*.so"
+/raid/yjy/torchmcubes-master/build/cxx/torchmcubes_module.cpython-310-x86_64-linux-gnu.so
+(triposr) lqy@DGXUSER1:/raid/yjy/TripoSR-main$ export PYTHONPATH=/raid/yjy/torchmcubes-master/build/cxx:$PYTHONPATH
+(triposr) lqy@DGXUSER1:/raid/yjy/TripoSR-main$ python run.py /raid/yjy/TripoSR-main/1.jpg --output-dir /raid/yjy/TripoSR-main/output/
+Traceback (most recent call last):
+  File "/raid/yjy/TripoSR-main/run.py", line 12, in <module>
+    from tsr.system import TSR
+  File "/raid/yjy/TripoSR-main/tsr/system.py", line 16, in <module>
+    from .models.isosurface import MarchingCubeHelper
+  File "/raid/yjy/TripoSR-main/tsr/models/isosurface.py", line 6, in <module>
+    from torchmcubes import marching_cubes
+ModuleNotFoundError: No module named 'torchmcubes'
+---
+OSError: /libcusparse.so.12: undefined symbol: __nvJitLinkCreate_12_8, version libnvJitLink.so.12
+---cuda install toolkit--还是不行
+---https://blog.csdn.net/qq_42730750/article/details/139582293---
+ln -s /home/dell/Coding/Envs/miniconda/envs/only_test/lib/python3.10/site-packages/nvidia/nvjitlink/lib/libnvJitLink.so.12 /home/dell/Coding/Envs/miniconda/envs/only_test/lib/python3.10/site-packages/nvidia/cusparse/lib/libnvJitLink.so.12
+export LD_LIBRARY_PATH=/home/dell/Coding/Envs/miniconda/envs/only_test/lib/python3.10/site-packages/nvidia/cusparse/lib:$LD_LIBRARY_PATH
+---echo $CONDA_PREFIX
+/home/dgxuser1/miniconda3/envs/triposr
+---libcudart.so.12太旧 和cuda版本不符---
+我现在的cuda是12.8，so.12可能不适配12.8
