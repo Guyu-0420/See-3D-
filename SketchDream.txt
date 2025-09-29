@@ -1,1 +1,6 @@
 https://github.com/IGLICT/SketchDream/?tab=readme-ov-file
+1.pip install -r requirements.txt
+服务器不能翻墙，两种解决方法：
+  1.本地下载+离线下载git的zip，导入后，找到setup.py，然后pip install .
+  2.离线pip requirement，然后把所有wheel转移到服务器，在服务器上重新下载
+2../scripts/golden_fish.sh
