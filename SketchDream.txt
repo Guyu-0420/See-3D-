@@ -4,3 +4,39 @@ https://github.com/IGLICT/SketchDream/?tab=readme-ov-file
   1.本地下载+离线下载git的zip，导入后，找到setup.py，然后pip install .
   2.离线pip requirement，然后把所有wheel转移到服务器，在服务器上重新下载
 2../scripts/golden_fish.sh
+  警告：FutureWarning: torch.cuda.amp.custom_fwd/custom_bwd/autocast 已弃用
+  这些是 PyTorch 2.x 的 API 变更提醒，建议改用 torch.amp.* 新接口（见第 2 部分的“代码替换”）。
+  No module 'xformers'. Proceeding without it.  未安装 xformers，影响速度/显存。
+
+  错误：程序创建多视图扩散模型时，需要加载 OpenCLIP 的权重：
+  open_clip.create_model_and_transforms(arch, device='cpu', pretrained=version)
+  # 其中 version='laion2b_s32b_b79k'，模型在 HF: laion/CLIP-ViT-H-14-laion2B-s32B-b79K
+  huggingface_hub 去 Hugging Face 下载文件：
+  open_clip_model.safetensors / open_clip_pytorch_model.bin
+  
+  机器无法访问外网：Failed to establish a new connection: [Errno 101] Network is unreachable
+  MaxRetryError ... huggingface.co ...
+  本地缓存也没有这些文件，于是触发错误并退出：  LocalEntryNotFoundError -> RuntimeError: Failed to download weights for tag 'laion2b_s32b_b79k'
+解决方法：
+  1.本地下载https://huggingface.co/laion/CLIP-ViT-H-14-laion2B-s32B-b79K/tree/main
+  “open_clip_model.safetensors”
+  2. 修改代码以加载本地权重
+  在 mvdream_control/ldm/modules/encoders/modules.py 中，找到以下代码：
+  model, _, _ = open_clip.create_model_and_transforms(arch, device=torch.device('cpu'), pretrained=version)
+  将其修改为：
+  model, _, _ = open_clip.create_model_and_transforms(arch, device=torch.device('cpu'), pretrained=None)
+  state = torch.load("/path/to/open_clip_model.safetensors", map_location="cpu")
+  model.load_state_dict(state)
+/raid/models/openclip/
+  └── laion/CLIP-ViT-H-14-laion2B-s32B-b79K/
+      ├── open_clip_pytorch_model.bin
+      └── open_clip_model.safetensors
+
+
+3. 确保模型架构与权重匹配
+
+请注意，确保您下载的权重文件与模型架构（如 ViT-H-14）匹配，否则可能会导致形状不匹配的错误。
+
+4. 处理 QuickGELU 和 GELU 的差异
+
+OpenCLIP 默认使用 torch.nn.GELU，而 OpenAI 的原始模型使用 QuickGELU。如果您使用的是 OpenAI 的权重，可能需要在模型定义中使用带有 -quickgelu 后缀的版本，以确保激活函数的一致性。
